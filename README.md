@@ -1,12 +1,11 @@
-# Silo Client v2
+# Silo Client 2.0
 
 <div align="center">
 
 **Locally generated, browser-based end-to-end encrypted messaging over Discord transport.**
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://python.org)
-[![Builder](https://img.shields.io/badge/Builder-2.0-6e7cff)](#builder-internals)
-[![Template](https://img.shields.io/badge/Template-2.0.1--configurable--dual--aead-a855f7)](#version-identifiers)
+[![Silo](https://img.shields.io/badge/Silo-2.0-6e7cff)](#silo-20)
 [![Encryption](https://img.shields.io/badge/AEAD-AES--256--GCM%20%2B%20ChaCha20--Poly1305-48d7a0)](#cryptographic-model)
 
 [Official website](https://siloclient.space) · [Installation](#installation) · [Security](#security-model) · [Protocol](#wire-protocols) · [Troubleshooting](#troubleshooting)
@@ -38,21 +37,22 @@ flowchart LR
     C --> HC["Encrypted history<br/>or memory-only state"]
 ```
 
-## Version identifiers
+## Silo 2.0
 
-The source contains several intentionally separate identifiers:
+The current product release documented here is **Silo 2.0**. Some source constants identify internal template compatibility, event schemas, or wire protocols. They are not separate Silo product releases:
 
 | Identifier | Value | Meaning |
 |---|---|---|
+| Product version | `2.0` | Current Silo release |
 | Builder version | `2.0` | Displayed by `silo_builder_web.py` |
-| Required template version | `2.0.1-configurable-dual-aead` | Exact string the Builder requires |
-| Client module description | `Silo Client 3.1` | Human-facing description in the template docstring |
+| Template compatibility marker | `2.0.1-configurable-dual-aead` | Exact internal marker required by the Builder; not the product version |
+| Client module description | Internal descriptive text | A stale source docstring; it does not change the Silo 2.0 product version |
 | Event schema | `v: 2` | Clear event structure after decryption |
 | Base protocol label | `silo-v2` | Used in AAD/export metadata |
 | Session protocol label | `silo-v3` | X25519 group-envelope label |
 | Text prefixes | `SILO2:` / `SILO3:` | Discord wire-format dispatch prefixes |
 
-These numbers refer to different layers and must not be treated as one semantic-version value.
+Protocol/schema numbers identify formats only. Throughout this README, “Silo version” always means **Silo 2.0**.
 
 ## Feature matrix
 
@@ -110,44 +110,29 @@ Silo/
 
 The Builder also accepts `_silo_client_template.py`, and searches both its own directory and the current working directory. The exact template-version marker must be present.
 
-### 3. Create and activate a virtual environment
+### 3. Install the dependencies
 
-#### Windows PowerShell
+Install the packages directly with the Python installation that will run Silo.
+
+#### Windows
 
 ```powershell
-py -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-```
-
-If PowerShell blocks activation, either adjust the policy for the current process or call `.venv\Scripts\python.exe` directly.
-
-#### Windows Command Prompt
-
-```bat
-py -m venv .venv
-.venv\Scripts\activate.bat
-python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
 #### macOS / Linux
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip
-pip install -r requirements.txt
+python3 -m pip install -r requirements.txt
 ```
 
-The explicit installation command is:
+If `pip` is linked to the intended Python interpreter, the universal short form is:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Generated clients also contain an automatic fallback installer. At startup they import each required module and invoke `python -m pip install ...` only for missing modules. Installing from `requirements.txt` first is preferable because failures happen before the chat starts and the environment is reproducible.
+Generated clients also contain an automatic fallback installer. At startup they import each required module and invoke `python -m pip install ...` only for missing modules. Installing from `requirements.txt` first is preferable because dependency errors are discovered before the chat starts.
 
 ### 4. Create Discord bots
 
@@ -825,7 +810,7 @@ Rolling upgrades are partially supported by legacy readers, but the safest deplo
 
 1. Stop every generated client.
 2. Delete generated `silo_client_*.py` files and any copies you distributed.
-3. Remove the virtual environment if no longer needed.
+3. Optionally uninstall the six packages from `requirements.txt` only if no other programs on that Python installation need them.
 4. Remove that client’s data under `~/.silo_client/`, after confirming the exact target.
 5. Revoke/delete Discord bot tokens/applications and remove bots from the server.
 6. Delete encrypted messages/attachments from Discord separately if desired and possible.
@@ -863,6 +848,6 @@ Silo uses modern primitives and implements substantial defensive logic, but prot
 
 <div align="center">
 
-**Silo** · locally generated clients · [siloclient.space](https://siloclient.space)
+**Silo 2.0** · locally generated clients · [siloclient.space](https://siloclient.space)
 
 </div>
