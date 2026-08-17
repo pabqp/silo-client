@@ -1,4 +1,4 @@
-# Silo
+# Silo Client v2
 
 <div align="center">
 
@@ -12,9 +12,6 @@
 [Official website](https://siloclient.space) · [Installation](#installation) · [Security](#security-model) · [Protocol](#wire-protocols) · [Troubleshooting](#troubleshooting)
 
 </div>
-
-> [!IMPORTANT]
-> This README is derived from the supplied `silo_builder_web.py` and `silo_client_template.py`. It distinguishes current behavior, optional behavior, and read-only legacy compatibility. It does not claim a custom Silo server, a formal audit, Signal-compatible Double Ratchet, complete forward secrecy, TLS on the LAN, or any feature absent from those files.
 
 ## What Silo is
 
