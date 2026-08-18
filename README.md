@@ -10,7 +10,7 @@
 [![Silo](https://img.shields.io/badge/Silo-2.0-6e7cff)](#silo-20)
 [![Encryption](https://img.shields.io/badge/AEAD-AES--256--GCM%20%2B%20ChaCha20--Poly1305-48d7a0)](#cryptographic-model)
 
-[Official website](https://siloclient.space) · [Installation](#installation) · [Security](#security-model) · [Protocol](#wire-protocols) · [Troubleshooting](#troubleshooting)
+[Official website](https://siloclient.space) · [Installation](#installation) · [Security](#security-model) · [Protocol](#wire-protocols) · [Troubleshooting](#troubleshooting) · [Screenshots](#screenshots)
 
 </div>
 
@@ -853,6 +853,8 @@ Silo uses modern primitives and implements substantial defensive logic, but prot
 **Silo 2.0** · locally generated clients · [siloclient.space](https://siloclient.space)
 
 </div>
+
+## Screenshots
 
 <img width="1919" height="1031" alt="image" src="https://github.com/user-attachments/assets/93c49d16-af6d-40f2-9191-d3feaea1c4f9" />
 
