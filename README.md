@@ -1,5 +1,7 @@
 # Silo Client 2.0
 
+<img width="1919" height="1031" alt="image" src="https://github.com/user-attachments/assets/97e77e5d-df35-41ee-9925-0852a61610f5" />
+
 <div align="center">
 
 **Locally generated, browser-based end-to-end encrypted messaging over Discord transport.**
@@ -851,3 +853,17 @@ Silo uses modern primitives and implements substantial defensive logic, but prot
 **Silo 2.0** · locally generated clients · [siloclient.space](https://siloclient.space)
 
 </div>
+
+<img width="1919" height="1031" alt="image" src="https://github.com/user-attachments/assets/93c49d16-af6d-40f2-9191-d3feaea1c4f9" />
+
+<img width="1896" height="1038" alt="image" src="https://github.com/user-attachments/assets/7d2d0c4e-86ef-46dd-ab6d-510625374153" />
+
+<img width="1919" height="1028" alt="image" src="https://github.com/user-attachments/assets/4d29977c-b0eb-4511-986d-c7eb6dc19ff9" />
+
+<img width="1895" height="1034" alt="image" src="https://github.com/user-attachments/assets/b772000b-bf0f-4438-b43a-63729a6d7264" />
+
+<img width="1917" height="1041" alt="image" src="https://github.com/user-attachments/assets/a64dd2d1-4f97-4085-a907-f2e51a00a2e4" />
+
+
+
+
