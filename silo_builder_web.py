@@ -15,7 +15,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 BUILDER_VERSION = "2.0"
-REQUIRED_TEMPLATE_VERSION = "2.0.1-configurable-dual-aead"
+REQUIRED_TEMPLATE_VERSION = "2.0.2-configurable-dual-aead"
 HOST = "127.0.0.1"
 MAX_REQUEST = 2_000_000
 TOKEN = secrets.token_urlsafe(32)
