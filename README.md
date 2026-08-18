@@ -856,6 +856,8 @@ Silo uses modern primitives and implements substantial defensive logic, but prot
 
 ## Screenshots
 
+<img width="1902" height="1032" alt="image" src="https://github.com/user-attachments/assets/04963450-a1e0-4aa4-a174-7085e4021ab2" />
+
 <img width="1919" height="1031" alt="image" src="https://github.com/user-attachments/assets/93c49d16-af6d-40f2-9191-d3feaea1c4f9" />
 
 <img width="1896" height="1038" alt="image" src="https://github.com/user-attachments/assets/7d2d0c4e-86ef-46dd-ab6d-510625374153" />
