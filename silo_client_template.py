@@ -76,7 +76,7 @@ except Exception:
 CONFIG = __CONFIG_JSON__
 PROTOCOL = "silo-v2"
 PROTOCOL_V3 = "silo-v3"
-TEMPLATE_VERSION = "2.0.1-configurable-dual-aead"
+TEMPLATE_VERSION = "2.0.2-configurable-dual-aead"
 PREFIX = "SILO2:"
 PREFIX_V3 = "SILO3:"
 ROOM = f'{CONFIG["server_id"]}:{CONFIG["channel_id"]}'
@@ -1786,6 +1786,9 @@ CLIENT_ENHANCEMENTS = r'''
 <style>
 .topic-unread-dot{display:inline-block;width:8px;height:8px;margin-left:8px;border-radius:50%;background:var(--a);box-shadow:0 0 0 0 color-mix(in srgb,var(--a) 65%,transparent);vertical-align:middle;animation:topicUnreadPulse 1.45s ease-in-out infinite}
 .topic-rename{width:24px;height:24px;padding:0;border:1px solid var(--line);border-radius:7px;color:var(--muted);background:#11141b;cursor:pointer;transition:.18s}.topic-rename:hover{color:#fff;border-color:var(--a);transform:translateY(-1px)}.topic-add:disabled{opacity:.5;cursor:not-allowed}
+.silo-wallpaper{z-index:0!important;inset:-28px!important}.app{background:rgba(4,5,8,var(--surface-alpha,.84))!important}.messages{background:rgba(1,2,5,var(--wallpaper-message-alpha,.52))!important;backdrop-filter:blur(1px)}.topicbar,.typing{background:rgba(3,4,7,var(--wallpaper-message-alpha,.52))!important}.left,.header,.composer{background:rgba(6,7,11,var(--surface-alpha,.84))!important}
+.ctx-reactions{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:5px;margin:2px 0 5px;border:1px solid var(--line);border-radius:10px;background:#ffffff05}.ctx-reactions button{display:grid!important;place-items:center!important;min-width:30px!important;min-height:34px!important;padding:4px!important;font-size:18px!important;text-align:center!important}.ctx-reactions button:hover{transform:translateY(-2px) scale(1.08);background:color-mix(in srgb,var(--a) 18%,#14161c)!important}
+.msg.is-highlighted{position:relative}.msg.is-highlighted:before{content:'★';position:absolute;z-index:2;top:16px;left:-20px;color:#ffd76a;font-size:13px;filter:drop-shadow(0 0 7px #ffc857)}.msg.is-highlighted .sender{color:#ffe39a;font-weight:750}.msg.is-highlighted .bubble{border-color:#ffd166!important;box-shadow:0 0 0 1px #ffd16655,0 12px 38px #0009,0 0 30px #f5b64235!important;background-image:linear-gradient(135deg,#f3bc2618,transparent 44%)!important}.msg.mine.is-highlighted .bubble{background-image:linear-gradient(135deg,#68551f55,transparent 38%),linear-gradient(135deg,var(--a),var(--b))!important}
 @keyframes topicUnreadPulse{50%{transform:scale(1.32);box-shadow:0 0 0 7px transparent;filter:brightness(1.35)}}
 .once-reveal-layer.capture-shield .once-reveal-card{position:relative;isolation:isolate;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .once-reveal-layer.capture-shield .once-reveal-card:after{content:attr(data-watermark);pointer-events:none;position:absolute;z-index:3;inset:42% -12%;color:#fff1;font:700 12px/1.8 Consolas,monospace;letter-spacing:2px;text-align:center;transform:rotate(-18deg);white-space:pre-wrap}
@@ -1795,6 +1798,8 @@ CLIENT_ENHANCEMENTS = r'''
 <script>
 (()=>{
  const unreadTopics=new Map(),knownMessages=new Set();let unreadPrimed=false,onceEraseTimer=0,onceCountdownTimer=0;
+ const oldReactButton=$('ctx').querySelector('[data-a="react"]'),reactionPicker=document.createElement('div');if(oldReactButton)oldReactButton.style.display='none';reactionPicker.className='ctx-reactions';reactionPicker.setAttribute('aria-label','Choose a reaction');reactionPicker.innerHTML=['👍','❤️','😂','🔥','✅'].map(emoji=>`<button type="button" data-quick-reaction="${emoji}" title="React ${emoji}">${emoji}</button>`).join('');oldReactButton?.after(reactionPicker);reactionPicker.onclick=event=>{let button=event.target.closest('[data-quick-reaction]');if(!button||!active)return;event.preventDefault();event.stopPropagation();send({type:'reaction',id:active.id,emoji:button.dataset.quickReaction});$('ctx').style.display='none'};
+ const surfaceControl=$('surfaceOpacity');function syncWallpaperSurface(){let value=Math.max(.08,Math.min(.78,(+(surfaceControl?.value||84)/100)*.68));document.documentElement.style.setProperty('--wallpaper-message-alpha',value.toFixed(2))}surfaceControl?.addEventListener('input',syncWallpaperSurface);syncWallpaperSurface();
  function decorateUnread(){document.querySelectorAll('[data-topic]').forEach(button=>{let topic=button.dataset.topic,old=button.querySelector('.topic-unread-dot');if(unreadTopics.has(topic)&&topic!==activeTopic){if(!old){let dot=document.createElement('i');dot.className='topic-unread-dot';dot.title=`${unreadTopics.get(topic)} unread message(s)`;dot.setAttribute('aria-label',dot.title);button.appendChild(dot)}}else old?.remove()})}
  renderTopics=function(){
   let atLimit=state.topics.length>=20;
@@ -1805,7 +1810,7 @@ CLIENT_ENHANCEMENTS = r'''
  render=function(){
   if(!unreadPrimed){state.messages.forEach(message=>knownMessages.add(message.id));unreadPrimed=true}
   else for(const message of state.messages){if(!knownMessages.has(message.id)){knownMessages.add(message.id);if(message.sender_id!==state.self_id&&message.topic_id!==activeTopic)unreadTopics.set(message.topic_id,(unreadTopics.get(message.topic_id)||0)+1)}}
-  unreadTopics.delete(activeTopic);renderBeforeUnread();decorateUnread();let permissionButton=document.querySelector('[title="Topic owner permissions"]'),topic=state.topics.find(item=>item.id===activeTopic);if(permissionButton)permissionButton.style.display=topic&&topic.id!=='lobby'&&String(topic.created_by)===String(state.self_id)?'':'none'
+  unreadTopics.delete(activeTopic);renderBeforeUnread();for(const message of state.messages)rendered.get(message.id)?.classList.toggle('is-highlighted',!!message.highlighted);decorateUnread();let permissionButton=document.querySelector('[title="Topic owner permissions"]'),topic=state.topics.find(item=>item.id===activeTopic);if(permissionButton)permissionButton.style.display=topic&&topic.id!=='lobby'&&String(topic.created_by)===String(state.self_id)?'':'none'
  };
  function eraseProtectedView(reason){clearTimeout(onceEraseTimer);clearInterval(onceCountdownTimer);if(onceLayer.classList.contains('show')){eraseOnceReveal();onceLayer.classList.remove('capture-shield');onceLayer.querySelector('.once-reveal-card')?.removeAttribute('data-watermark');if(reason)toast(reason)}}
  const revealBeforeProtection=revealViewOnce;
