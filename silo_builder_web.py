@@ -1,5 +1,8 @@
-#!/usr/bin/env python3
-"""Silo Web Builder — localhost-only, zero-cloud client generator."""
+# **********************************************
+# Copyright 2026 by Silo Client
+# https://github.com/pabqp/silo-client
+# **********************************************
+
 from __future__ import annotations
 
 import io
