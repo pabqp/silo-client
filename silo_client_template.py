@@ -1,7 +1,10 @@
-#!/usr/bin/env python3
-"""Silo Client 3.1 — topic-separated E2EE chat with encrypted attachments."""
-from __future__ import annotations
+# **********************************************
+# Copyright 2026 by Silo Client
+# https://github.com/pabqp/silo-client
+# **********************************************
 
+from __future__ import annotations
+# Importing standart modules
 import asyncio
 import base64
 from collections import OrderedDict
@@ -24,7 +27,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 def _load_dependencies():
-    """Install pinned runtime dependencies only when they are missing."""
+    # Install dependencies only when they are missing
     required = {
         "aiohttp": "aiohttp>=3.10,<4",
         "discord": "discord.py>=2.4,<3",
@@ -47,10 +50,10 @@ def _load_dependencies():
                 f'Run manually: "{sys.executable}" -m pip install ' + " ".join(missing) + f"\n\n{exc}"
             ) from exc
 
-
 _load_dependencies()
 
-import aiohttp
+# Importing more modules, cryptography and Discord related + psutil and qrcode
+import aiohttpººº
 from aiohttp import web
 import discord
 from cryptography.exceptions import InvalidTag
@@ -72,7 +75,7 @@ try:
 except Exception:
     keyboard = None
 
-
+# Configurating the defaults
 CONFIG = __CONFIG_JSON__
 PROTOCOL = "silo-v2"
 PROTOCOL_V3 = "silo-v3"
@@ -114,16 +117,15 @@ FEATURES = {
     "panic": bool(CONFIG.get("enable_panic", True)),
 }
 
-
+# Setup topic identifier standarts and verification
 def normalize_topic_id(value: object) -> str:
     topic = str(value or "")
     if not topic or len(topic) > 48 or not all(char.isascii() and (char.isalnum() or char in "_-") for char in topic):
         raise ValueError("invalid topic identifier")
     return topic
 
-
 def local_ip() -> str:
-    """Best-effort LAN address used by phones on the same network."""
+    # Best-effort LAN address used by phones on the same network (getting local IP)
     probe = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
         probe.connect(("8.8.8.8", 80))
@@ -135,25 +137,23 @@ def local_ip() -> str:
         probe.close()
     return address
 
-
 LAN_IP = local_ip()
 
-
+# Generates the url for mobile devices
 def mobile_url() -> str:
     return f'http://{LAN_IP}:{CONFIG["port"]}/?access={CONFIG.get("web_access_token", "")}'
 
-
+# Gets datetime
 def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="milliseconds")
 
-
+# Validate username
 def clean_name(value: str) -> str:
     value = "".join(c for c in str(value).strip() if c.isprintable() and c not in "\r\n\t")
     return value[:40] or "User"
 
-
+# Fast online AEAD backed by a one-time memory-hard password derivation
 class CryptoBox:
-    """Fast online AEAD backed by a one-time memory-hard password derivation."""
     def __init__(self, passphrase: str):
         if len(passphrase) < 16:
             raise ValueError("The shared key must contain at least 16 characters")
@@ -198,6 +198,7 @@ class CryptoBox:
         self.encrypted = 0
         self.decrypted = 0
 
+    # Setup of the topic sha256 cipher system
     def topic_cipher(self, topic_id: str, purpose: str = "event") -> AESGCM:
         topic_id = normalize_topic_id(topic_id)
         cache_key = (topic_id, purpose)
@@ -212,6 +213,7 @@ class CryptoBox:
                 self.topic_ciphers.pop(next(iter(self.topic_ciphers)))
         return cipher
 
+    # Setup of the topic chacha cypher
     def topic_chacha_cipher(self, topic_id: str, purpose: str) -> ChaCha20Poly1305:
         topic_id = normalize_topic_id(topic_id)
         cache_key = (topic_id, purpose)
@@ -226,8 +228,8 @@ class CryptoBox:
                 self.topic_chacha_ciphers.pop(next(iter(self.topic_chacha_ciphers)))
         return cipher
 
+    # Read-only v3.1 compatibility during rolling upgrades
     def legacy_topic_cipher(self, topic_id: str) -> AESGCM:
-        """Read-only v3.1 compatibility during rolling upgrades."""
         cache_key = (normalize_topic_id(topic_id), "legacy-event")
         cipher = self.topic_ciphers.get(cache_key)
         if cipher is None:
@@ -236,6 +238,7 @@ class CryptoBox:
             cipher = AESGCM(key); self.topic_ciphers[cache_key] = cipher
         return cipher
 
+    # Nonce limits config
     def next_nonce(self) -> bytes:
         with self.nonce_lock:
             if self.nonce_counter >= (1 << 64) - 1:
@@ -260,12 +263,12 @@ class CryptoBox:
     def aad(self, topic_id: str, purpose: str = "event") -> bytes:
         return (PROTOCOL + "|AES-256-GCM|" + ROOM + "|" + topic_id + "|" + purpose).encode()
 
+    # Encryption layers
     def encrypt(self, value: dict) -> str:
         topic_id = normalize_topic_id(value.get("topic_id", CONTROL_TOPIC))
         nonce = self.next_nonce()
         clear = json.dumps(value, ensure_ascii=False, separators=(",", ":"), sort_keys=True).encode()
-        # Authenticated length hiding. Random slack avoids exposing exact message
-        # length while keeping the Discord payload comfortably below its limit.
+        # Authenticated length hiding. Random slack avoids exposing exact message length while keeping the Discord payload comfortably below its limit
         target = ((len(clear) + 2 + PAD_BUCKET - 1) // PAD_BUCKET) * PAD_BUCKET
         target += secrets.randbelow(2) * PAD_BUCKET
         raw = len(clear).to_bytes(2, "big") + clear + secrets.token_bytes(target - len(clear) - 2)
@@ -284,6 +287,7 @@ class CryptoBox:
             blob = header + nonce + encrypted
         return PREFIX + topic_id + ":" + base64.urlsafe_b64encode(blob).decode()
 
+    # Decryption method
     def decrypt(self, value: str) -> dict:
         if not value.startswith(PREFIX):
             raise ValueError("unknown protocol")
@@ -348,6 +352,7 @@ class CryptoBox:
             raise ValueError("authenticated topic does not match the header")
         return decoded
 
+    # Encrypt attachement method
     def encrypt_attachment_chunk(self, topic_id: str, transfer_id: str, index: int, chunk: bytes) -> bytes:
         topic_id = normalize_topic_id(topic_id)
         nonce = self.next_nonce()
@@ -363,6 +368,7 @@ class CryptoBox:
         aad = self.aad(topic_id, f"file-v4:{transfer_id}:{index}") + header
         return header + nonce + self.topic_cipher(topic_id, f"attachment:{epoch}").encrypt(nonce, chunk, aad)
 
+    # Decrypt attachement mehtod
     def decrypt_attachment_chunk(self, topic_id: str, transfer_id: str, index: int, payload: bytes) -> bytes:
         topic_id = normalize_topic_id(topic_id)
         if len(payload) < 29:
@@ -404,6 +410,7 @@ class CryptoBox:
         self.remember_nonce(f"legacy-file/{topic_id}/{transfer_id}/{index}/".encode(), nonce)
         return plain
 
+    # Encrypt local history method
     def encrypt_local_history(self, clear: bytes) -> bytes:
         """Layered authenticated encryption for data at rest."""
         magic = b"SILOHIST2\x00"
@@ -417,6 +424,7 @@ class CryptoBox:
         outer = ChaCha20Poly1305(key2).encrypt(outer_nonce, inner_nonce + inner, magic + identity + b"/outer")
         return magic + outer_nonce + outer
 
+    # Decrypt local history method
     def decrypt_local_history(self, payload: bytes) -> bytes:
         magic = b"SILOHIST2\x00"
         if len(payload) < len(magic) + 12 + 16 or not payload.startswith(magic):
@@ -432,7 +440,7 @@ class CryptoBox:
         return AESGCM(key1).decrypt(inner_blob[:12], inner_blob[12:], magic + identity + b"/inner")
 
     def invalidate(self):
-        """Best-effort invalidation; Python and crypto backends may retain copies."""
+        # Best-effort invalidation; Python and crypto backends may retain copies
         for index in range(len(self.master_key)):
             self.master_key[index] = secrets.randbits(8)
         for index in range(len(self.secondary_master_key)):
@@ -442,13 +450,12 @@ class CryptoBox:
         self.replay_cache.clear()
         self.nonce_prefix = secrets.token_bytes(4)
 
-
+"""
+Asynchronous group envelope using per-client X25519 session keys.
+This is a bounded session ratchet, not Signal's Double Ratchet. A content key is
+encrypted once with AES-256-GCM and wrapped independently for every known peer.
+"""
 class SessionRatchet:
-    """Asynchronous group envelope using per-client X25519 session keys.
-
-    This is a bounded session ratchet, not Signal's Double Ratchet. A content key is
-    encrypted once with AES-256-GCM and wrapped independently for every known peer.
-    """
     def __init__(self, master_key: bytearray):
         self.master_key = master_key
         self.private_keys: list[X25519PrivateKey] = []
@@ -464,15 +471,14 @@ class SessionRatchet:
     def rotate_identity(self):
         private = X25519PrivateKey.generate()
         self.private_keys.insert(0, private)
-        # One previous private key is retained only as a short grace window for
-        # in-flight Discord messages addressed to the prior announcement.
+        # One previous private key is retained only as a short grace window for in-flight Discord messages addressed to the prior announcement
         del self.private_keys[2:]
         self.public_bytes = private.public_key().public_bytes(
             serialization.Encoding.Raw, serialization.PublicFormat.Raw)
 
     def rotate_content(self):
         self._scrub(self.content_key)
-        # Independent AES and ChaCha session keys.
+        # Independent AES and ChaCha session keys
         self.content_key = bytearray(secrets.token_bytes(64))
         self.session_id = secrets.token_hex(12)
         self.sent_in_session = 0
